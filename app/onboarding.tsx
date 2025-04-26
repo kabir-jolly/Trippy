@@ -1,87 +1,83 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Link, router } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { markOnboardingCompleted } from '@/utils/storage';
+import React from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Brain, MapPin, Calendar, Cloud } from 'lucide-react-native';
 
-export default function OnboardingScreen() {
-  const theme = useColorScheme() ?? 'light';
-  const backgroundColor = theme === 'light' ? Colors.light.background : Colors.dark.background;
-  const textColor = theme === 'light' ? Colors.light.text : Colors.dark.text;
+const onboardingData = [
+  {
+    title: "Turn Social Media Finds Into Travel Plans",
+    description: "Save videos of places you want to visit, and let AI do the organizing",
+    icon: Brain,
+  },
+  {
+    title: "Smart Content Analysis",
+    description: "Our AI extracts location details, operating hours, and more from your videos automatically",
+    icon: MapPin,
+  },
+  {
+    title: "Intelligent Itinerary Planning",
+    description: "Get AI-optimized travel schedules that make sense geographically and temporally",
+    icon: Calendar,
+  },
+  {
+    title: "Adaptive Real-Time Assistance",
+    description: "Your AI travel companion adjusts plans for weather, closures, and new opportunities",
+    icon: Cloud,
+  },
+];
 
-  const handleContinue = async () => {
-    await markOnboardingCompleted();
-    router.replace('/(tabs)');
+export default function Onboarding() {
+  const router = useRouter();
+  const [currentPage, setCurrentPage] = React.useState(0);
+
+  const handleNext = () => {
+    if (currentPage < onboardingData.length - 1) {
+      setCurrentPage(currentPage + 1);
+    } else {
+      router.push('/create-trip');
+    }
   };
 
-  return (
-    <ThemedView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <IconSymbol
-            name="airplane"
-            size={48}
-            weight="bold"
-            color={theme === 'light' ? Colors.light.tint : Colors.dark.tint}
-          />
-          <ThemedText type="title" style={styles.title}>Welcome to Trippy</ThemedText>
-          <ThemedText type="default" style={styles.subtitle}>
-            Your AI-powered travel planning companion
-          </ThemedText>
-        </View>
+  const handleSkip = () => {
+    router.push('/create-trip');
+  };
 
-        <View style={styles.features}>
-          <FeatureItem
-            icon="play.rectangle"
-            title="Save Travel Content"
-            description="Save Reels and TikToks to automatically create your itinerary"
-          />
-          <FeatureItem
-            icon="map"
-            title="Smart Planning"
-            description="AI optimizes your schedule based on locations and preferences"
-          />
-          <FeatureItem
-            icon="bubble.left.and.bubble.right"
-            title="Travel Assistant"
-            description="Get real-time recommendations and alternative plans"
-          />
+  const Icon = onboardingData[currentPage].icon;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <Icon size={64} color="#7C3AED" />
+        </View>
+        <Text style={styles.title}>{onboardingData[currentPage].title}</Text>
+        <Text style={styles.description}>{onboardingData[currentPage].description}</Text>
+      </View>
+
+      <View style={styles.footer}>
+        <View style={styles.dots}>
+          {onboardingData.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                index === currentPage ? styles.activeDot : null,
+              ]}
+            />
+          ))}
         </View>
 
         <View style={styles.buttons}>
-          <TouchableOpacity 
-            style={[styles.button, styles.primaryButton]}
-            onPress={handleContinue}
-          >
-            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-              Get Started
-            </ThemedText>
+          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
+            <Text style={styles.nextText}>
+              {currentPage === onboardingData.length - 1 ? 'Get Started' : 'Next'}
+            </Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ThemedView>
-  );
-}
-
-function FeatureItem({ icon, title, description }: { icon: string; title: string; description: string }) {
-  const theme = useColorScheme() ?? 'light';
-  
-  return (
-    <View style={styles.featureItem}>
-      <IconSymbol
-        name={icon}
-        size={24}
-        weight="medium"
-        color={theme === 'light' ? Colors.light.tint : Colors.dark.tint}
-      />
-      <View style={styles.featureText}>
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
-        <ThemedText type="default" style={styles.featureDescription}>
-          {description}
-        </ThemedText>
       </View>
     </View>
   );
@@ -90,55 +86,76 @@ function FeatureItem({ icon, title, description }: { icon: string; title: string
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
-    padding: 24,
-    justifyContent: 'space-between',
-  },
-  header: {
     alignItems: 'center',
-    marginTop: 60,
+    justifyContent: 'center',
+    padding: 20,
   },
-  title: {
-    fontSize: 32,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  features: {
-    marginTop: 48,
-    gap: 24,
-  },
-  featureItem: {
-    flexDirection: 'row',
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#F3E8FF',
     alignItems: 'center',
-    gap: 16,
-  },
-  featureText: {
-    flex: 1,
-  },
-  featureDescription: {
-    opacity: 0.8,
-    marginTop: 4,
-  },
-  buttons: {
-    marginTop: 48,
+    justifyContent: 'center',
     marginBottom: 32,
   },
-  button: {
-    padding: 16,
-    borderRadius: 12,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+    color: '#1F2937',
+  },
+  description: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#6B7280',
+    paddingHorizontal: 20,
+  },
+  footer: {
+    padding: 20,
+  },
+  dots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#7C3AED',
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  primaryButton: {
-    backgroundColor: Colors.light.tint,
+  skipButton: {
+    padding: 12,
   },
-  buttonText: {
+  skipText: {
+    color: '#7C3AED',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  nextButton: {
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  nextText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 }); 
