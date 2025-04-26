@@ -1,24 +1,37 @@
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { Platform } from "react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.light.tint,
-        tabBarInactiveTintColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background,
-          borderTopColor: colorScheme === 'light' ? Colors.light.border : Colors.dark.border,
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+          height: 88,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+          paddingTop: 12,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderTopWidth: 1,
         },
         headerStyle: {
-          backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background,
+          backgroundColor: colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
         },
-        headerTintColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
+        headerTintColor: colors.text,
+        headerShadowVisible: false,
       }}
     >
       <Tabs.Screen
@@ -26,8 +39,18 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => (
-            <IconSymbol name="house" size={size} color={color} weight="medium" />
+            <IconSymbol name="house" size={24} color={color} weight="medium" />
           ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+          },
+          listeners: {
+            tabPress: (e) => {
+              e.preventDefault();
+              router.navigate("/(tabs)/");
+            },
+          },
         }}
       />
       <Tabs.Screen
@@ -35,8 +58,12 @@ export default function TabLayout() {
         options={{
           title: "Explore",
           tabBarIcon: ({ color, size }) => (
-            <IconSymbol name="magnifyingglass" size={size} color={color} weight="medium" />
+            <IconSymbol name="magnifyingglass" size={24} color={color} weight="medium" />
           ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+          },
         }}
       />
       <Tabs.Screen
@@ -44,8 +71,12 @@ export default function TabLayout() {
         options={{
           title: "Assistant",
           tabBarIcon: ({ color, size }) => (
-            <IconSymbol name="message.fill" size={size} color={color} weight="medium" />
+            <IconSymbol name="message.fill" size={24} color={color} weight="medium" />
           ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+          },
         }}
       />
       <Tabs.Screen

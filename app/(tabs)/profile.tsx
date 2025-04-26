@@ -329,8 +329,8 @@ export default function TravelAssistantScreen() {
     return (
       <View 
         style={[
-          styles.messageBubble, 
-          item.isUser ? styles.userBubble : styles.assistantBubble,
+          styles.messageContainer,
+          item.isUser ? styles.userMessage : styles.assistantMessage,
           { 
             backgroundColor: item.isUser 
               ? themeColors.tint
@@ -339,10 +339,13 @@ export default function TravelAssistantScreen() {
         ]}
       >
         <Text style={[
-          styles.messageText, 
+          item.isUser ? styles.userMessageText : styles.assistantMessageText, 
           { color: item.isUser ? 'white' : themeColors.text }
         ]}>
           {item.text}
+        </Text>
+        <Text style={styles.timestamp}>
+          {item.timestamp.toLocaleTimeString()}
         </Text>
       </View>
     );
@@ -371,12 +374,12 @@ export default function TravelAssistantScreen() {
     >
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top : 16 }]}>
         <Text style={[
-          styles.headerTitle,
+          styles.title,
           { color: themeColors.text }
         ]}>
           Claude's Travel Assistant
         </Text>
-        <Text style={styles.apiKeyReminder}>
+        <Text style={styles.subtitle}>
           {getApiKeyStatusMessage()}
         </Text>
       </View>
@@ -411,8 +414,11 @@ export default function TravelAssistantScreen() {
           editable={!isLoading}
         />
         {isLoading ? (
-          <View style={[styles.sendButton, { backgroundColor: themeColors.tint }]}>
+          <View style={[styles.loadingContainer, { backgroundColor: themeColors.tint }]}>
             <ActivityIndicator size="small" color="white" />
+            <Text style={styles.loadingText}>
+              Claude is thinking...
+            </Text>
           </View>
         ) : (
           <TouchableOpacity 
@@ -434,61 +440,118 @@ export default function TravelAssistantScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  apiKeyReminder: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-  },
-  messagesContainer: {
     padding: 16,
   },
-  messageBubble: {
-    maxWidth: '80%',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginBottom: 10,
+  header: {
+    marginBottom: 16,
   },
-  userBubble: {
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 8,
   },
-  assistantBubble: {
-    alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
+  subtitle: {
     fontSize: 16,
-    lineHeight: 22,
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+  messagesContainer: {
+    flex: 1,
+    marginBottom: 16,
   },
   inputContainer: {
-    flexDirection: 'row',
-    padding: 10,
-    borderTopWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
   input: {
     flex: 1,
-    padding: 10,
-    borderRadius: 20,
     fontSize: 16,
+    marginLeft: 8,
+    color: "#1F2937",
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#6366F1",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 8,
+  },
+  messageContainer: {
+    marginBottom: 16,
+  },
+  userMessage: {
+    alignSelf: "flex-end",
+    backgroundColor: "#6366F1",
+    padding: 16,
+    borderRadius: 16,
+    borderBottomRightRadius: 4,
+    maxWidth: "80%",
+  },
+  assistantMessage: {
+    alignSelf: "flex-start",
+    backgroundColor: "#F3F4F6",
+    padding: 16,
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+    maxWidth: "80%",
+  },
+  userMessageText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    lineHeight: 22,
+  },
+  assistantMessageText: {
+    fontSize: 16,
+    color: "#1F2937",
+    lineHeight: 22,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    marginTop: 4,
+    alignSelf: "flex-end",
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginTop: 8,
+  },
+  apiKeyNotice: {
+    padding: 16,
+    backgroundColor: "#FEF3C7",
+    borderRadius: 12,
+    marginVertical: 16,
+  },
+  apiKeyNoticeText: {
+    fontSize: 14,
+    color: "#92400E",
+    lineHeight: 20,
+  },
+  apiKeyBold: {
+    fontWeight: "bold",
+  },
+  apiKeyCommandContainer: {
+    backgroundColor: "#FFFBEB",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  apiKeyCommand: {
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    fontSize: 14,
+    color: "#92400E",
   },
 });
