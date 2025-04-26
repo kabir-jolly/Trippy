@@ -158,9 +158,9 @@ export default function HomeScreen() {
             params: { tripId: item.id }
           })}
         >
-          <Text style={styles.addContentText}>Add Content</Text>
+          <Text style={styles.addContentText}>Edit Trip</Text>
           <IconSymbol
-            name="plus"
+            name="pencil"
             size={16}
             weight="bold"
             color="#7C3AED"
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   primaryCard: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#7C3AED',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   addContentText: {
     fontSize: 15,
     fontWeight: '500',
-    color: Colors.light.primary,
+    color: '#7C3AED',
     marginRight: 8,
   },
   emptyState: {
