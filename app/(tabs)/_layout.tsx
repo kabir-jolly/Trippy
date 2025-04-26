@@ -1,67 +1,32 @@
 import { Tabs } from "expo-router";
-import React from "react";
-
-import { HapticTab } from "@/components/HapticTab";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Colors } from "@/constants/Colors";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 
-// Beautiful aesthetic blue color
-const AESTHETIC_BLUE = "#4A86E8";
-// Light gray color for inactive labels
-const LIGHT_GRAY = "#9E9E9E";
-
 export default function TabLayout() {
+  const colorScheme = useColorScheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: AESTHETIC_BLUE,
-        tabBarInactiveTintColor: LIGHT_GRAY,
-        headerShown: false,
-        tabBarShowLabel: true,
-        tabBarButton: HapticTab,
+        tabBarActiveTintColor: Colors.light.tint,
+        tabBarInactiveTintColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
         tabBarStyle: {
-          position: "absolute",
-          bottom: 30,
-          left: 15,
-          right: 15,
-          width: undefined,
-          elevation: 0,
-          backgroundColor: "rgba(255, 255, 255, 0.85)",
-          borderRadius: 25,
-          height: 75,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 6,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          paddingHorizontal: 20,
-          borderTopWidth: 0,
+          backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background,
+          borderTopColor: colorScheme === 'light' ? Colors.light.border : Colors.dark.border,
         },
-        tabBarItemStyle: {
-          marginVertical: 0,
-          height: 75,
-          flexDirection: "column",
-          justifyContent: "space-between",
-          paddingTop: 12,
-          paddingBottom: 12,
+        headerStyle: {
+          backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginTop: 8,
-          fontWeight: "500",
-        },
-        tabBarIconStyle: {
-          marginBottom: 0,
-        },
+        headerTintColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={24} name="house.fill" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol name="house" size={size} color={color} weight="medium" />
           ),
         }}
       />
@@ -69,8 +34,8 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={24} name="sparkles" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol name="magnifyingglass" size={size} color={color} weight="medium" />
           ),
         }}
       />
@@ -78,8 +43,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={24} name="person.fill" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol name="person" size={size} color={color} weight="medium" />
           ),
         }}
       />

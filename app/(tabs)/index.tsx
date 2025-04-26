@@ -1,6 +1,5 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
 import { Link } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -14,55 +13,76 @@ export default function HomeScreen() {
     <ThemedView style={[styles.container, { backgroundColor }]}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>Your Trips</ThemedText>
-          <ThemedText type="default" style={styles.subtitle}>
-            Start planning your next adventure
-          </ThemedText>
+          <Text style={styles.title}>Welcome Back!</Text>
+          <Text style={styles.subtitle}>
+            Ready to plan your next adventure?
+          </Text>
         </View>
 
-        <View style={styles.buttons}>
+        <View style={styles.actionCards}>
           <Link href="/create-trip" asChild>
-            <TouchableOpacity style={[styles.button, styles.primaryButton]}>
-              <IconSymbol
-                name="plus"
-                size={20}
-                weight="medium"
-                color="#fff"
-                style={styles.buttonIcon}
-              />
-              <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                Create New Trip
-              </ThemedText>
+            <TouchableOpacity style={styles.primaryCard}>
+              <View style={styles.cardContent}>
+                <View style={styles.primaryIconContainer}>
+                  <IconSymbol
+                    name="plus"
+                    size={24}
+                    weight="bold"
+                    color="#fff"
+                  />
+                </View>
+                <View style={styles.cardTextContainer}>
+                  <Text style={styles.primaryCardTitle}>
+                    Create New Trip
+                  </Text>
+                  <Text style={styles.primaryCardDescription}>
+                    Start planning your next adventure
+                  </Text>
+                </View>
+              </View>
             </TouchableOpacity>
           </Link>
           
           <Link href="/join-trip" asChild>
-            <TouchableOpacity style={[styles.button, styles.secondaryButton]}>
-              <IconSymbol
-                name="person.2"
-                size={20}
-                weight="medium"
-                color={theme === 'light' ? Colors.light.tint : Colors.dark.tint}
-                style={styles.buttonIcon}
-              />
-              <ThemedText type="defaultSemiBold" style={[styles.buttonText, styles.secondaryButtonText]}>
-                Join Trip
-              </ThemedText>
+            <TouchableOpacity style={styles.secondaryCard}>
+              <View style={styles.cardContent}>
+                <View style={styles.secondaryIconContainer}>
+                  <IconSymbol
+                    name="person.2"
+                    size={24}
+                    weight="bold"
+                    color="#007AFF"
+                  />
+                </View>
+                <View style={styles.cardTextContainer}>
+                  <Text style={styles.secondaryCardTitle}>
+                    Join Trip
+                  </Text>
+                  <Text style={styles.secondaryCardDescription}>
+                    Join an existing trip with friends
+                  </Text>
+                </View>
+              </View>
             </TouchableOpacity>
           </Link>
         </View>
 
-        <View style={styles.emptyState}>
-          <IconSymbol
-            name="airplane"
-            size={48}
-            weight="light"
-            color={theme === 'light' ? Colors.light.text : Colors.dark.text}
-            style={styles.emptyStateIcon}
-          />
-          <ThemedText type="default" style={styles.emptyStateText}>
-            No trips yet. Create or join a trip to get started!
-          </ThemedText>
+        <View style={styles.recentTrips}>
+          <Text style={styles.sectionTitle}>
+            Recent Trips
+          </Text>
+          <View style={styles.emptyState}>
+            <IconSymbol
+              name="airplane"
+              size={48}
+              weight="light"
+              color={theme === 'light' ? Colors.light.text : Colors.dark.text}
+              style={styles.emptyStateIcon}
+            />
+            <Text style={styles.emptyStateText}>
+              No trips yet. Create or join a trip to get started!
+            </Text>
+          </View>
         </View>
       </View>
     </ThemedView>
@@ -84,38 +104,85 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     marginBottom: 8,
+    color: '#000',
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.8,
+    color: '#000',
   },
-  buttons: {
-    gap: 12,
+  actionCards: {
+    gap: 16,
     marginBottom: 32,
   },
-  button: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
+  primaryCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#007AFF',
   },
-  primaryButton: {
-    backgroundColor: Colors.light.tint,
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
+  secondaryCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: Colors.light.tint,
+    borderColor: '#007AFF',
   },
-  buttonIcon: {
-    marginRight: 8,
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
   },
-  buttonText: {
+  primaryIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  secondaryIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  cardTextContainer: {
+    flex: 1,
+  },
+  primaryCardTitle: {
+    fontSize: 18,
     color: '#fff',
+    marginBottom: 4,
+    fontWeight: '600',
   },
-  secondaryButtonText: {
-    color: Colors.light.tint,
+  primaryCardDescription: {
+    fontSize: 14,
+    color: '#fff',
+    opacity: 0.8,
+  },
+  secondaryCardTitle: {
+    fontSize: 18,
+    color: '#007AFF',
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  secondaryCardDescription: {
+    fontSize: 14,
+    color: '#000',
+    opacity: 0.8,
+  },
+  recentTrips: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    marginBottom: 16,
+    color: '#000',
+    fontWeight: '600',
   },
   emptyState: {
     flex: 1,
@@ -128,5 +195,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     textAlign: 'center',
+    color: '#000',
   },
 });
