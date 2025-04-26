@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
+import { Stack } from "expo-router";
 
-export default function HomeScreen() {
+export default function HelloScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Home</Text>
+      <Stack.Screen options={{ title: "Hello" }} />
+      <Text style={styles.text}>Hello Screen</Text>
     </View>
   );
 }
