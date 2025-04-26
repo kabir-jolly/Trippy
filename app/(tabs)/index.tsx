@@ -1,13 +1,189 @@
-import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useEffect, useState, useRef } from 'react';
+import { StyleSheet, TouchableOpacity, View, Text, FlatList, Alert, Animated } from 'react-native';
+import { Link, router } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { getTrips, Trip, deleteTrip } from '@/utils/storage';
+import { format, parseISO } from 'date-fns';
+import { RectButton, Swipeable } from 'react-native-gesture-handler';
 
 export default function HomeScreen() {
   const theme = useColorScheme() ?? 'light';
   const backgroundColor = theme === 'light' ? Colors.light.background : Colors.dark.background;
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
+
+  useEffect(() => {
+    loadTrips();
+  }, []);
+
+  const loadTrips = async () => {
+    setLoading(true);
+    try {
+      const userTrips = await getTrips();
+      // Sort trips by start date (most recent first)
+      userTrips.sort((a, b) => parseISO(b.startDate).getTime() - parseISO(a.startDate).getTime());
+      setTrips(userTrips);
+    } catch (error) {
+      console.error('Error loading trips:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTrip = (tripId: string) => {
+    Alert.alert(
+      "Delete Trip",
+      "Are you sure you want to delete this trip? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+          onPress: () => {
+            // Close the swipeable
+            const swipeable = swipeableRefs.current.get(tripId);
+            if (swipeable) {
+              swipeable.close();
+            }
+          }
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteTrip(tripId);
+              // Update the UI
+              setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
+            } catch (error) {
+              console.error('Error deleting trip:', error);
+              Alert.alert("Error", "Failed to delete trip. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const renderRightActions = (tripId: string) => {
+    return (
+      <RectButton 
+        style={styles.deleteAction}
+        onPress={() => handleDeleteTrip(tripId)}
+      >
+        <IconSymbol
+          name="trash"
+          size={24}
+          weight="medium"
+          color="#fff"
+        />
+      </RectButton>
+    );
+  };
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+  };
+
+  const renderTripCard = ({ item }: { item: Trip }) => (
+    <Swipeable
+      ref={(ref) => {
+        if (ref) {
+          swipeableRefs.current.set(item.id, ref);
+        }
+      }}
+      renderRightActions={() => renderRightActions(item.id)}
+      rightThreshold={40}
+      overshootRight={false}
+    >
+      <TouchableOpacity 
+        style={styles.tripCard}
+        onPress={() => router.push({
+          pathname: '/content-empty',
+          params: { tripId: item.id }
+        })}
+      >
+        <View style={styles.tripHeader}>
+          <View style={styles.destinationIcon}>
+            <IconSymbol
+              name="mappin"
+              size={24}
+              weight="bold"
+              color="#7C3AED"
+            />
+          </View>
+          <View style={styles.tripHeaderText}>
+            <Text style={styles.tripDestination}>{item.destination}</Text>
+            <Text style={styles.tripDates}>
+              {formatDateRange(item.startDate, item.endDate)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.tripMeta}>
+          <View style={styles.tripMetaItem}>
+            <IconSymbol
+              name="person.2"
+              size={16}
+              weight="medium"
+              color={theme === 'light' ? Colors.light.text : Colors.dark.text}
+            />
+            <Text style={styles.tripMetaText}>
+              {item.travelers} {item.travelers === 1 ? 'traveler' : 'travelers'}
+            </Text>
+          </View>
+          
+          <View style={styles.tripMetaItem}>
+            <IconSymbol
+              name="video"
+              size={16}
+              weight="medium"
+              color={theme === 'light' ? Colors.light.text : Colors.dark.text}
+            />
+            <Text style={styles.tripMetaText}>
+              {item.content?.length || 0} videos
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.addContent}
+          onPress={() => router.push({
+            pathname: '/add-travel-content',
+            params: { tripId: item.id }
+          })}
+        >
+          <Text style={styles.addContentText}>Add Content</Text>
+          <IconSymbol
+            name="plus"
+            size={16}
+            weight="bold"
+            color="#7C3AED"
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+
+  const renderEmptyTrips = () => (
+    <View style={styles.emptyState}>
+      <IconSymbol
+        name="airplane"
+        size={48}
+        weight="light"
+        color={theme === 'light' ? Colors.light.text : Colors.dark.text}
+        style={styles.emptyStateIcon}
+      />
+      <Text style={styles.emptyStateText}>
+        No trips yet. Create or join a trip to get started!
+      </Text>
+    </View>
+  );
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -67,22 +243,25 @@ export default function HomeScreen() {
           </Link>
         </View>
 
-        <View style={styles.recentTrips}>
+        <View style={styles.upcomingTrips}>
           <Text style={styles.sectionTitle}>
-            Recent Trips
+            Upcoming Trips
           </Text>
-          <View style={styles.emptyState}>
-            <IconSymbol
-              name="airplane"
-              size={48}
-              weight="light"
-              color={theme === 'light' ? Colors.light.text : Colors.dark.text}
-              style={styles.emptyStateIcon}
+          
+          {loading ? (
+            <View style={styles.loadingState}>
+              <Text style={styles.loadingText}>Loading trips...</Text>
+            </View>
+          ) : trips.length > 0 ? (
+            <FlatList
+              data={trips}
+              renderItem={renderTripCard}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.tripsList}
             />
-            <Text style={styles.emptyStateText}>
-              No trips yet. Create or join a trip to get started!
-            </Text>
-          </View>
+          ) : (
+            renderEmptyTrips()
+          )}
         </View>
       </View>
     </ThemedView>
@@ -95,56 +274,63 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    padding: 20,
+    paddingTop: 60,
   },
   header: {
-    marginTop: 16,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
+    fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000',
+    color: '#111827',
   },
   subtitle: {
     fontSize: 16,
-    opacity: 0.8,
-    color: '#000',
+    color: '#6B7280',
   },
   actionCards: {
-    gap: 16,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   primaryCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#7C3AED',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#7C3AED',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   secondaryCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#E5E7EB',
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
   },
   primaryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
   secondaryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     backgroundColor: 'rgba(0, 122, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -154,47 +340,141 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryCardTitle: {
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 4,
-    fontWeight: '600',
   },
   primaryCardDescription: {
     fontSize: 14,
-    color: '#fff',
-    opacity: 0.8,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   secondaryCardTitle: {
-    fontSize: 18,
-    color: '#007AFF',
-    marginBottom: 4,
+    fontSize: 16,
     fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
   },
   secondaryCardDescription: {
     fontSize: 14,
-    color: '#000',
-    opacity: 0.8,
+    color: '#6B7280',
   },
-  recentTrips: {
+  upcomingTrips: {
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 20,
-    marginBottom: 16,
-    color: '#000',
+    fontSize: 18,
     fontWeight: '600',
+    marginBottom: 16,
+    color: '#111827',
+  },
+  tripsList: {
+    paddingBottom: 20,
+  },
+  tripCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tripHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  destinationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  tripHeaderText: {
+    flex: 1,
+  },
+  tripDestination: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  tripDates: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  tripMeta: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  tripMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  tripMetaText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginLeft: 6,
+  },
+  addContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  addContentText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#7C3AED',
+    marginRight: 6,
   },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    opacity: 0.5,
+    paddingVertical: 40,
   },
   emptyStateIcon: {
     marginBottom: 16,
+    opacity: 0.5,
   },
   emptyStateText: {
+    fontSize: 16,
     textAlign: 'center',
-    color: '#000',
+    color: '#6B7280',
+    maxWidth: '80%',
+  },
+  loadingState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  deleteAction: {
+    backgroundColor: '#EF4444', // Red color
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    borderRadius: 12,
+    marginBottom: 12,
   },
 });

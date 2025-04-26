@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Search, Home } from 'lucide-react-native';
+import { ArrowLeft, Search } from 'lucide-react-native';
 import { getTripById, Trip } from '@/utils/storage';
 
 export default function ContentEmptyScreen() {
@@ -36,13 +36,10 @@ export default function ContentEmptyScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color="#374151" />
           </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
+          <View>
             <Text style={styles.headerTitle}>Add Content</Text>
             <Text style={styles.headerSubtitle}>Loading...</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push("/")} style={styles.homeButton}>
-            <Home size={24} color="#374151" />
-          </TouchableOpacity>
         </View>
       </View>
     );
@@ -55,13 +52,10 @@ export default function ContentEmptyScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color="#374151" />
           </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
+          <View>
             <Text style={styles.headerTitle}>Add Content</Text>
             <Text style={styles.headerSubtitle}>Trip not found</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push("/")} style={styles.homeButton}>
-            <Home size={24} color="#374151" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.emptyStateContainer}>
@@ -86,13 +80,10 @@ export default function ContentEmptyScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#374151" />
         </TouchableOpacity>
-        <View style={styles.headerTextContainer}>
+        <View>
           <Text style={styles.headerTitle}>Add Content</Text>
           <Text style={styles.headerSubtitle}>{trip?.destination || 'Your Trip'}</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push("/")} style={styles.homeButton}>
-          <Home size={24} color="#374151" />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.emptyStateContainer}>
@@ -131,9 +122,6 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 16,
   },
-  headerTextContainer: {
-    flex: 1,
-  },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -142,9 +130,6 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#6B7280',
-  },
-  homeButton: {
-    padding: 8,
   },
   emptyStateContainer: {
     flex: 1,
