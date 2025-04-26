@@ -89,7 +89,7 @@ export default function RootLayout() {
           name="create-trip"
           options={{
             title: "Create Trip",
-            presentation: "modal",
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -97,6 +97,56 @@ export default function RootLayout() {
           options={{
             title: "Join Trip",
             presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="content-empty"
+          options={{
+            title: "Add Content",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="add-content"
+          options={{
+            title: "Add Content",
+            headerShown: false,
+            presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="content-analysis"
+          options={{
+            title: "AI Analysis",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="content-with-items"
+          options={{
+            title: "Content Collection",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="itinerary-planning"
+          options={{
+            title: "Itinerary Planning",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="final-itinerary"
+          options={{
+            title: "Your Itinerary",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="trip-details"
+          options={{
+            title: "Trip Details",
+            headerShown: false,
           }}
         />
         <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />

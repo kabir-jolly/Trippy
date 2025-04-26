@@ -48,6 +48,42 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="content-analysis"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="content-with-items"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="create-trip"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="final-itinerary"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="itinerary-planning"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="add-travel-content"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

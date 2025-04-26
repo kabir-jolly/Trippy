@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -7,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function CreateTripScreen() {
+  const router = useRouter();
   const theme = useColorScheme() ?? 'light';
   const backgroundColor = theme === 'light' ? Colors.light.background : Colors.dark.background;
   const [tripName, setTripName] = useState('');
@@ -26,6 +29,7 @@ export default function CreateTripScreen() {
       endDate,
       travelers
     });
+    router.push('/trip-content');
   };
 
   const onStartDateChange = (event: any, selectedDate?: Date) => {
@@ -44,6 +48,13 @@ export default function CreateTripScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <IconSymbol name="arrow.left" size={24} color={theme === 'light' ? '#000' : '#fff'} />
+        </TouchableOpacity>
+        <ThemedText type="title">Create New Trip</ThemedText>
+      </View>
+
       <ScrollView style={styles.scrollView}>
         <View style={styles.form}>
           <View style={styles.inputGroup}>
@@ -147,6 +158,16 @@ export default function CreateTripScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  backButton: {
+    marginRight: 16,
   },
   scrollView: {
     flex: 1,
