@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, FileText, Brain, MapPin, Clock, Edit, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, FileText, Brain, MapPin, Clock, Edit, ArrowRight, Home } from 'lucide-react-native';
 
 export default function ContentAnalysisScreen() {
   const router = useRouter();
@@ -13,6 +13,9 @@ export default function ContentAnalysisScreen() {
           <ArrowLeft size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, styles.whiteText]}>AI Analysis</Text>
+        <TouchableOpacity onPress={() => router.push("/")} style={styles.homeButton}>
+          <Home size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.previewContainer}>
@@ -137,6 +140,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
+    flex: 1,
   },
   whiteText: {
     color: '#fff',
@@ -337,5 +341,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginRight: 8,
+  },
+  homeButton: {
+    padding: 8,
   },
 }); 

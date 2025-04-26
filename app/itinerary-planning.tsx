@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Brain, ChevronDown, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, Brain, ChevronDown, ArrowRight, Home } from 'lucide-react-native';
 
 export default function ItineraryPlanningScreen() {
   const router = useRouter();
@@ -12,10 +12,13 @@ export default function ItineraryPlanningScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#374151" />
         </TouchableOpacity>
-        <View>
+        <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Itinerary</Text>
           <Text style={styles.headerSubtitle}>Barcelona, Spain</Text>
         </View>
+        <TouchableOpacity onPress={() => router.push("/")} style={styles.homeButton}>
+          <Home size={24} color="#374151" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
@@ -83,6 +86,9 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 16,
   },
+  headerTextContainer: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -91,6 +97,9 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  homeButton: {
+    padding: 8,
   },
   content: {
     flex: 1,

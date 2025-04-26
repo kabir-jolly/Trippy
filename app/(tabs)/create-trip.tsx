@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,6 +7,7 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { saveTrip, setOnboardingCompleted } from '@/utils/storage';
 
 export default function CreateTripScreen() {
   const router = useRouter();
@@ -15,34 +16,77 @@ export default function CreateTripScreen() {
   const [tripName, setTripName] = useState('');
   const [destination, setDestination] = useState('');
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)); // Default to 1 week
   const [travelers, setTravelers] = useState(1);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateTrip = () => {
-    // TODO: Implement trip creation logic
-    console.log({
-      tripName,
-      destination,
-      startDate,
-      endDate,
-      travelers
-    });
-    router.push('/trip-content');
+  const handleCreateTrip = async () => {
+    // Validate inputs
+    if (!tripName.trim()) {
+      Alert.alert('Missing Information', 'Please enter a trip name');
+      return;
+    }
+
+    if (!destination.trim()) {
+      Alert.alert('Missing Information', 'Please enter a destination');
+      return;
+    }
+
+    setIsCreating(true);
+
+    // Save trip to storage
+    try {
+      const newTrip = {
+        id: Date.now().toString(),
+        name: tripName.trim(),
+        destination: destination.trim(),
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        travelers,
+        created: Date.now(),
+        content: []
+      };
+
+      await saveTrip(newTrip);
+      await setOnboardingCompleted(); // Mark onboarding as completed
+      router.push({
+        pathname: '/(tabs)/content-empty',
+        params: { tripId: newTrip.id }
+      });
+    } catch (error) {
+      console.error('Failed to create trip:', error);
+      Alert.alert('Error', 'Failed to create trip. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const onStartDateChange = (event: any, selectedDate?: Date) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
       setStartDate(selectedDate);
+      
+      // If end date is before start date, update end date
+      if (endDate < selectedDate) {
+        // Set end date to start date + 1 day
+        const newEndDate = new Date(selectedDate);
+        newEndDate.setDate(newEndDate.getDate() + 1);
+        setEndDate(newEndDate);
+      }
     }
   };
 
   const onEndDateChange = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
-      setEndDate(selectedDate);
+      // Ensure end date is not before start date
+      if (selectedDate >= startDate) {
+        setEndDate(selectedDate);
+      } else {
+        Alert.alert('Invalid Date', 'End date cannot be before start date');
+      }
     }
   };
 
@@ -127,10 +171,13 @@ export default function CreateTripScreen() {
 
       <View style={styles.footer}>
         <TouchableOpacity 
-          style={styles.createButton}
+          style={[styles.createButton, isCreating && styles.createButtonDisabled]}
           onPress={handleCreateTrip}
+          disabled={isCreating}
         >
-          <Text style={styles.createButtonText}>Create Trip</Text>
+          <Text style={styles.createButtonText}>
+            {isCreating ? 'Creating...' : 'Create Trip'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -163,39 +210,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingTop: 60,
   },
   backButton: {
-    marginRight: 16,
+    marginRight: 12,
   },
   scrollView: {
     flex: 1,
+    padding: 16,
   },
   form: {
-    padding: 24,
+    flex: 1,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
-    color: '#000',
+    color: '#333',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 16,
-    color: '#000',
+    backgroundColor: '#fff',
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
   dateInput: {
     flex: 1,
@@ -203,50 +250,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
   },
   dateText: {
     fontSize: 16,
-    color: '#000',
   },
   dateSeparator: {
+    marginHorizontal: 8,
     fontSize: 16,
     color: '#666',
   },
   travelerSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   travelerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#007AFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
   },
   travelerCount: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
-    minWidth: 40,
+    flex: 1,
     textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '500',
   },
   footer: {
-    padding: 24,
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: '#eee',
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
-    padding: 16,
+    paddingVertical: 14,
     alignItems: 'center',
+  },
+  createButtonDisabled: {
+    backgroundColor: '#ccc',
   },
   createButtonText: {
     color: '#fff',

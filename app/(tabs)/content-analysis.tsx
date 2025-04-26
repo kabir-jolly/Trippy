@@ -1,16 +1,92 @@
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Button } from '@/components/ui/Button';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { DetailItem } from '@/components/DetailItem';
+import { getTripById, Trip, TripContent } from '@/utils/storage';
 
 export default function ContentAnalysisScreen() {
   const theme = useColorScheme() ?? 'light';
   const backgroundColor = theme === 'light' ? Colors.light.background : Colors.dark.background;
+  const { tripId, contentId } = useLocalSearchParams<{ tripId: string, contentId: string }>();
+  const [loading, setLoading] = useState(true);
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [content, setContent] = useState<TripContent | null>(null);
+
+  useEffect(() => {
+    if (tripId) {
+      loadTripAndContent();
+    } else {
+      setLoading(false);
+    }
+  }, [tripId, contentId]);
+
+  const loadTripAndContent = async () => {
+    try {
+      const tripDetails = await getTripById(tripId);
+      setTrip(tripDetails);
+      
+      if (tripDetails && contentId) {
+        const contentItem = tripDetails.content.find(item => item.id === contentId);
+        if (contentItem) {
+          setContent(contentItem);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading trip details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ThemedView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <IconSymbol name="arrow.left" size={24} color="#fff" />
+          </TouchableOpacity>
+          <ThemedText type="title">Content Analysis</ThemedText>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#7C3AED" />
+          <Text style={styles.loadingText}>Analyzing content...</Text>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  if (!content) {
+    return (
+      <ThemedView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <IconSymbol name="arrow.left" size={24} color="#fff" />
+          </TouchableOpacity>
+          <ThemedText type="title">Content Error</ThemedText>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Content not found</Text>
+          <Button
+            title="Go Back"
+            onPress={() => router.back()}
+            variant="secondary"
+          />
+        </View>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -25,94 +101,44 @@ export default function ContentAnalysisScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.previewContainer}>
-          <View style={styles.previewIcon}>
-            <IconSymbol name="doc.text.fill" size={20} color="#fff" />
-          </View>
-          <Text style={styles.previewText}>TikTok Preview</Text>
-        </View>
-
-        <View style={styles.analysisContainer}>
-          <View style={styles.analysisHeader}>
-            <View style={styles.analysisIcon}>
-              <IconSymbol name="house.fill" size={20} color="#fff" />
-            </View>
-            <View>
-              <Text style={styles.analysisTitle}>Claude</Text>
-              <Text style={styles.analysisSubtitle}>Processing Content</Text>
+        <View style={styles.card}>
+          <View style={styles.sourceInfo}>
+            <IconSymbol name="play.rectangle" size={40} color="#7C3AED" />
+            <View style={styles.sourceTextContainer}>
+              <Text style={styles.sourceType}>{content.type}</Text>
+              <Text style={styles.confidence}>
+                {content.confidence}% confidence
+              </Text>
             </View>
           </View>
 
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: '75%' }]} />
-            </View>
-            <Text style={styles.progressText}>Audio Transcription</Text>
-            <Text style={styles.progressSubtext}>Converting speech to text</Text>
-          </View>
+          <View style={styles.divider} />
 
-          <View style={styles.logContainer}>
-            <Text style={styles.logTitle}>Detection Log</Text>
-            <View style={styles.logItems}>
-              <LogItem text="Initializing analysis..." />
-              <LogItem text="Restaurant detected (89% confidence)" />
-              <LogItem text="Location: 'Flax & Kale'" color="#4CAF50" />
-              <LogItem text="Hours: '9AM-4PM'" color="#4CAF50" />
-            </View>
-          </View>
-        </View>
+          <View style={styles.placeDetails}>
+            <Text style={styles.placeTitle}>{content.title}</Text>
+            <Text style={styles.placeType}>{content.subtitle}</Text>
 
-        <View style={styles.resultContainer}>
-          <Text style={styles.resultTitle}>Flax & Kale</Text>
-          
-          <View style={styles.confidenceContainer}>
-            <Text style={styles.confidenceLabel}>Confidence:</Text>
-            <View style={styles.confidenceBar}>
-              <View style={[styles.confidenceFill, { width: '80%' }]} />
-            </View>
-            <Text style={styles.confidenceValue}>89%</Text>
-          </View>
-
-          <View style={styles.detailsContainer}>
-            <DetailItem
-              icon="house.fill"
-              label="Address"
-              value="Carrer dels Tallers, 74B, Barcelona"
-              source="Context"
+            <DetailItem 
+              icon="mappin"
+              label="Location"
+              value={content.location || 'Location not available'}
+              source={content.type}
             />
-            <DetailItem
-              icon="clock.fill"
+
+            <DetailItem 
+              icon="clock"
               label="Hours"
-              value="9:00 AM - 4:00 PM"
-              source="On-screen text"
+              value={content.hours || 'Hours not available'}
+              source={content.type}
             />
           </View>
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <IconSymbol name="brain.head.profile" size={20} color={Colors.light.tint} />
-            <ThemedText type="subtitle">Location Details</ThemedText>
-          </View>
-
-          <DetailItem
-            icon="location.fill"
-            label="Location"
-            value="Bali, Indonesia"
-            source="Google Places API"
-          />
-          <DetailItem
-            icon="clock.fill"
-            label="Best Time to Visit"
-            value="April to October"
-            source="Weather API"
-          />
-          <DetailItem
-            icon="person.2.fill"
-            label="Popular Activities"
-            value="Beaches, Temples, Water Sports"
-            source="TripAdvisor API"
-          />
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>What we found</Text>
+          <Text style={styles.infoText}>
+            We analyzed your {content.type} and identified a popular location in {trip?.destination || 'your destination'}. We've extracted key details such as location and hours to help you plan your trip.
+          </Text>
         </View>
       </ScrollView>
 
@@ -125,20 +151,14 @@ export default function ContentAnalysisScreen() {
         />
         <Button
           title="Continue"
-          onPress={() => router.push('/create-trip')}
+          onPress={() => router.push({
+            pathname: '/trip-content',
+            params: { tripId }
+          })}
           icon={<IconSymbol name="arrow.right" size={18} color="#fff" />}
         />
       </View>
     </ThemedView>
-  );
-}
-
-function LogItem({ text, color = '#fff' }: { text: string; color?: string }) {
-  return (
-    <View style={styles.logItem}>
-      <View style={styles.logDot} />
-      <Text style={[styles.logText, { color }]}>{text}</Text>
-    </View>
   );
 }
 
@@ -150,166 +170,117 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#1C1C1E',
+    paddingTop: 60,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#7C3AED',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
   },
   content: {
     flex: 1,
     padding: 16,
   },
-  previewContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  previewIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.light.tint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  previewText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  analysisContainer: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  analysisHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  analysisIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.light.tint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  analysisTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  analysisSubtitle: {
-    fontSize: 14,
-    color: '#999',
-  },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: '#3A3A3C',
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.light.tint,
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#fff',
-  },
-  progressSubtext: {
-    fontSize: 12,
-    color: '#999',
-  },
-  logContainer: {
-    backgroundColor: '#3A3A3C',
-    borderRadius: 8,
-    padding: 12,
-  },
-  logTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  logItems: {
-    gap: 8,
-  },
-  logItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.light.tint,
-    marginRight: 8,
-  },
-  logText: {
-    fontSize: 12,
-    color: '#fff',
-  },
-  resultContainer: {
+  card: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  resultTitle: {
+  sourceInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sourceTextContainer: {
+    marginLeft: 16,
+  },
+  sourceType: {
     fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  confidence: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 16,
+  },
+  placeDetails: {
+    marginBottom: 8,
+  },
+  placeTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  placeType: {
+    fontSize: 16,
+    color: '#6B7280',
     marginBottom: 16,
   },
-  confidenceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  infoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 16,
   },
-  confidenceLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginRight: 8,
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
   },
-  confidenceBar: {
-    flex: 1,
-    height: 4,
-    backgroundColor: '#E5E5E5',
-    borderRadius: 2,
-    marginRight: 8,
-  },
-  confidenceFill: {
-    height: '100%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 2,
-  },
-  confidenceValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#4CAF50',
-  },
-  detailsContainer: {
-    gap: 16,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
+  infoText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#4B5563',
   },
   footer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     padding: 16,
-    gap: 12,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginBottom: 24,
   },
 }); 

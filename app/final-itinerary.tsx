@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, MapPin } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Home } from 'lucide-react-native';
 
 export default function FinalItineraryScreen() {
   const router = useRouter();
@@ -12,10 +12,13 @@ export default function FinalItineraryScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#374151" />
         </TouchableOpacity>
-        <View>
+        <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Your Itinerary</Text>
           <Text style={styles.headerSubtitle}>Barcelona, Spain</Text>
         </View>
+        <TouchableOpacity onPress={() => router.push("/")} style={styles.homeButton}>
+          <Home size={24} color="#374151" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
@@ -96,6 +99,9 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 16,
   },
+  headerTextContainer: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -104,6 +110,9 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: '#6B7280',
+  },
+  homeButton: {
+    padding: 8,
   },
   content: {
     flex: 1,
