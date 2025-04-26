@@ -4,17 +4,16 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Redirect, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from '@/constants/Colors';
-import { hasCompletedOnboarding, setOnboardingCompleted } from "@/utils/storage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -24,15 +23,6 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    async function checkOnboarding() {
-      const completed = await hasCompletedOnboarding();
-      setShowOnboarding(!completed);
-    }
-    checkOnboarding();
-  }, []);
 
   useEffect(() => {
     if (loaded) {
@@ -40,35 +30,8 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded || showOnboarding === null) {
+  if (!loaded) {
     return null;
-  }
-
-  if (showOnboarding) {
-    return (
-      <GestureHandlerRootView style={styles.container}>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-          <Stack
-            screenOptions={{
-              headerStyle: {
-                backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background,
-              },
-              headerTintColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
-              headerTitleStyle: {
-                fontWeight: '600',
-              },
-            }}>
-            <Stack.Screen
-              name="onboarding"
-              options={{
-                headerShown: false,
-              }}
-            />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    );
   }
 
   return (
@@ -84,6 +47,19 @@ export default function RootLayout() {
               fontWeight: '600',
             },
           }}>
+          {/* Index will redirect to onboarding */}
+          <Stack.Screen
+            name="index"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="onboarding"
+            options={{
+              headerShown: false,
+            }}
+          />
           <Stack.Screen
             name="(tabs)"
             options={{
@@ -156,7 +132,12 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
-          <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
+          <Stack.Screen 
+            name="+not-found" 
+            options={{ 
+              title: "Not Found" 
+            }} 
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
